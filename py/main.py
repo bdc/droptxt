@@ -84,6 +84,17 @@ class AjaxHandler(BaseHandler):
       'content': f.read(),
     }))
 
+  def put_file(self, path=None):
+    logging.info('put_file: %s', path)
+    parent_rev = self.request.get('parent_rev')
+    oauth_token = get_oauth_token(self.session)
+    client = dropbox.client.DropboxClient(oauth_token)
+    metadata = client.put_file(path, self.request.body, parent_rev=parent_rev)
+    self.response.write(json.dumps({
+      'conflict': metadata['path'] != path,
+      'metadata': metadata,
+    }))
+
 
 def get_oauth_token(session):
   user_email = users.get_current_user().email()
@@ -109,8 +120,10 @@ app = webapp2.WSGIApplication([
   webapp2.Route(
     '/oauth2callback', handler=MainHandler, handler_method='oauth2callback',
     name='oauth2callback'),
-  webapp2.Route('/j/get_file/<path:.+>', handler=AjaxHandler,
+  webapp2.Route('/j/get_file<path:.+>', handler=AjaxHandler,
     handler_method='get_file'),
+  webapp2.Route('/j/put_file<path:.+>', handler=AjaxHandler,
+    handler_method='put_file'),
   webapp2.Route('/', handler=MainHandler, name='app-main'),
   ('/.*', MainHandler),
 ], config=config, debug=True)

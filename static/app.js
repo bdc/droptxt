@@ -5,9 +5,11 @@ app.controller('appCtrl', ['$scope', function(scope) {
 
   scope.tabs = [
   // TODO remove this
-    {name: '01 calendar', path: '/notes/01%20calendar.txt'},
-    {name: '02 todo', path: '/notes/02%20todo.txt'},
-    {name: '03 scratch', path: '/notes/03%20scratch.txt'}
+  /*
+    {name: 'calendar', path: '/notes/01%20calendar.txt'},
+    {name: 'todo', path: '/notes/02%20todo.txt'},
+    {name: 'scratch', path: '/notes/03%20scratch.txt'}
+    */
   ];
 
   scope.pickFiles = function() {
@@ -37,9 +39,7 @@ app.directive('toolbarButton', [function() {
     restrict: 'A',
     scope: {},
     templateUrl: 'toolbar-button.html',
-    transclude: true,
-    link: function (scope, element) {
-    }
+    transclude: true
   };
 }]);
 
@@ -62,17 +62,28 @@ app.directive('tabbedFile', [
   };
 
   var push = function(path, scope) {
-    // TODO
-    console.log('push...');
-    return;
-    $http({method: 'POST', url: '/j/put_file' + path})
+    $http({
+      method: 'POST',
+      url: '/j/put_file' + path,
+      params: {parent_rev: scope.metadata.rev},
+      data: scope.content
+    })
     .success(function(data, status, headers, config) {
+      scope.metadata = data.metadata;
+      var message = 'Saved!';
+      if (data.conflict) {
+        message += ' (with conflict)'
+      }
       toast({
-        template: '<material-toast>' + 'Saved!' + '</material-toast>',
+        template: '<material-toast>' + message + '</material-toast>',
         position: 'bottom left'
       });
     })
     .error(function(data, status, headers, config) {
+      toast({
+        template: '<material-toast>' + 'Error!' + '</material-toast>',
+        position: 'bottom left'
+      });
     });
   };
 
