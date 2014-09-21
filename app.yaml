@@ -5,11 +5,19 @@ api_version: 1
 threadsafe: yes
 
 handlers:
+- url: /s
+  static_dir: static
+- url: /webhook
+  script: py.main.app
+  secure: always
 - url: /.*
+  login: required
   script: py.main.app
   secure: always
 
 libraries:
+- name: jinja2
+  version: latest
 - name: ssl
   version: latest
 - name: webapp2
