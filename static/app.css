@@ -1,3 +1,8 @@
 textarea.monospace {
   font-family: 'Cutive Mono', serif;
 }
+
+textarea.wrap {
+  white-space: pre;
+  word-wrap: normal;
+}
