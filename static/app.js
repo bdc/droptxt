@@ -14,9 +14,9 @@ app.controller('appCtrl', ['$scope', function(scope) {
 
   scope.pickFiles = function() {
     Dropbox.choose({
-      linkType: "direct",
+      linkType: 'direct',
       multiselect: true,
-      extensions: [".txt"],
+      extensions: ['.txt'],
       success: function(files) {
         for (var i = 0; i < files.length; i++) {
           file = files[i];
