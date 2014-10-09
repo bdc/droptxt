@@ -12,5 +12,6 @@ Features TODO
 - Support vim-like binding perhaps
 - Icons in the toolbar
 - Splash page
+- abc
 
 
