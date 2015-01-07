@@ -6,3 +6,7 @@ textarea.wrap {
   white-space: pre;
   word-wrap: normal;
 }
+
+md-tabs .md-tabs-content .md-tab-content {
+  height: 80%;
+}
