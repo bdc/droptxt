@@ -37,7 +37,9 @@
           <md-tab label="{{tab.name}}" ng-repeat="tab in tabs">
             <div tabbed-file
                 tab="tab"
-                close="tabs.splice($index, 1)">
+                tab-index="$index"
+                close="tabs.splice($index, 1)"
+                on-conflict="onConflict(tabIndex, tabData, serverData)">
             </div>
           </md-tab>
         </md-tabs>

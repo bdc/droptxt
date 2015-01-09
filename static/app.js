@@ -2,7 +2,18 @@ var app = angular.module(
     'text-sync', ['cfp.hotkeys', 'ngCookies', 'ngMaterial']);
 
 
-var AUTOSAVE_TIMEOUT_ = 4000;  // milliseconds
+app.constants = {
+  AUTOSAVE_TIMEOUT_: 4000  // milliseconds
+};
+
+
+app.util = {};
+
+
+app.util.getShortName = function(fileName) {
+  var name = /.*\/(.*?)\..*$/.exec(fileName)[1];
+  return decodeURIComponent(name);
+};
 
 
 app.controller('appCtrl', [
@@ -59,19 +70,35 @@ app.controller('appCtrl', [
       extensions: ['.txt'],
       success: function(files) {
         for (var i = 0; i < files.length; i++) {
-          file = files[i];
+          var file = files[i];
+          var path = /\/view\/\w+(.*)$/.exec(file.link)[1];
           scope.tabs.push({
-            name: /^(.*)\..*$/.exec(file.name)[1],
-            path: /\/view\/\w+(.*)$/.exec(file.link)[1]
+            name: app.util.getShortName(path),
+            path: path
           });
-          scope.$digest();
+          scope.$apply(function() {
+            scope.selectedTabIndex = scope.tabs.length - 1;
+          });
         }
       },
     });
   };
 
+  scope.onConflict = function(tabIndex, tabData, serverData) {
+    var existingTab = scope.tabs[tabIndex];
+    var newTab = angular.copy(existingTab);
+
+    existingTab.path = serverData.metadata.path;
+    existingTab.name = app.util.getShortName(existingTab.path);
+
+    scope.tabs.splice(tabIndex, 0, newTab);
+
+    $timeout(function() {
+      scope.selectedTabIndex = tabIndex + 1;
+    });
+  };
+
   scope.$watch('tabs.length', function(newLength, oldLength) {
-    console.log('newLength=' + newLength + ', oldLength=' + oldLength);
     if (newLength == oldLength) {
       return;
     }
@@ -80,13 +107,10 @@ app.controller('appCtrl', [
       if (selection > 0) {
         selection = selection - 1;
       }
+      $timeout(function() {
+        scope.selectedTabIndex = selection;
+      });
     }
-    if (newLength > oldLength) {
-      selection = oldLength;
-    }
-    $timeout(function() {
-      scope.selectedTabIndex = selection;
-    });
   });
 }]);
 
@@ -138,8 +162,9 @@ app.directive('tabbedFile', [
       scope.savedContent = saveContent;
       var message = 'Saved!';
       if (data.conflict) {
-        // TODO something smarter here
         message += ' (with conflict)'
+        scope.onConflict({
+          tabIndex: scope.tabIndex, tabData: scope.tab, serverData: data});
       }
       $mdToast.show({
         template: '<md-toast>' + message + '</md-toast>',
@@ -159,7 +184,9 @@ app.directive('tabbedFile', [
     restrict: 'A',
     scope: {
       'close': '&',
-      'tab': '='
+      'onConflict': '&',
+      'tab': '=',
+      'tabIndex': '='
     },
     templateUrl: 'tabbed-file.html',
     link: function (scope, element) {
@@ -181,7 +208,7 @@ app.directive('tabbedFile', [
           if (scope.content != scope.savedContent) {
             scope.save();
           }
-        }, AUTOSAVE_TIMEOUT_);
+        }, app.constants.AUTOSAVE_TIMEOUT_);
       });
 
       element.find('textarea').focus();  // TODO
