@@ -10,3 +10,12 @@ textarea.wrap {
 md-tabs .md-tabs-content .md-tab-content {
   height: 80%;
 }
+
+.reload {
+  position: fixed;
+  width: 100%;
+  padding: 10px;
+  background: yellow !important;
+  opacity: 0.8;
+  vertical-align: middle;
+}

@@ -3,7 +3,8 @@ var app = angular.module(
 
 
 app.constants = {
-  AUTOSAVE_TIMEOUT_: 4000  // milliseconds
+  AUTOSAVE_TIMEOUT_: 4000,  // milliseconds
+  LAST_SAVE_PROMPT_TIMEOUT_: 30*60*1000  // 30 minutes
 };
 
 
@@ -142,6 +143,7 @@ app.directive('tabbedFile', [
       scope.content = data.content;
       scope.savedContent = data.content;
       scope.metadata = data.metadata;
+      snoozeSavePrompt(scope);
     })
     .error(function(data, status, headers, config) {
       scope.error = true;
@@ -160,6 +162,7 @@ app.directive('tabbedFile', [
     .success(function(data, status, headers, config) {
       scope.metadata = data.metadata;
       scope.savedContent = saveContent;
+      snoozeSavePrompt(scope);
       var message = 'Saved!';
       if (data.conflict) {
         message += ' (with conflict)'
@@ -179,6 +182,16 @@ app.directive('tabbedFile', [
     });
   };
 
+  var snoozeSavePrompt = function(scope) {
+    scope.showSavePrompt = false;
+    if (scope.lastSavePromise) {
+      $timeout.cancel(scope.lastSavePromise);
+    }
+    scope.lastSavePromise = $timeout(function() {
+      scope.showSavePrompt = true;
+    }, app.constants.LAST_SAVE_PROMPT_TIMEOUT_);
+  };
+
   return {
     replace: true,
     restrict: 'A',
@@ -190,12 +203,19 @@ app.directive('tabbedFile', [
     },
     templateUrl: 'tabbed-file.html',
     link: function (scope, element) {
+      scope.element = element;
       scope.monospace = true;
+      scope.reloadApp = function() {
+        document.location.reload();
+      };
       scope.reload = function() {
         load(scope.tab.path, scope);
       };
       scope.save = function() {
         save(scope.tab.path, scope);
+      };
+      scope.snoozeSavePrompt = function() {
+        snoozeSavePrompt(scope);
       };
       scope.reload();
       scope.autosave = null;
