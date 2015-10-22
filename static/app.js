@@ -35,6 +35,10 @@ app.controller('appCtrl', [
     }
   };
 
+  window.onfocus = function() {
+    scope.$broadcast('window.onfocus');
+  };
+
   if (Storage) {
     var tabsValues = window.localStorage.getItem('tabs') || '[]';
     scope.tabs = JSON.parse(tabsValues);
@@ -192,6 +196,8 @@ app.directive('tabbedFile', [
     }, app.constants.LAST_SAVE_PROMPT_TIMEOUT_);
   };
 
+
+
   return {
     replace: true,
     restrict: 'A',
@@ -219,6 +225,11 @@ app.directive('tabbedFile', [
       };
       scope.reload();
       scope.autosave = null;
+      /*
+      scope.$on('window.onfocus', function() {
+        console.log('tab directive window.focus - ' + scope.tab.name);
+      });
+      */
       scope.$watch('content', function(newContent, oldContent) {
         if (newContent === oldContent) {
           return;
